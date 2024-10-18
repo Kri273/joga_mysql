@@ -61,6 +61,6 @@ app.get('/article/:slug', (req, res) => {
     })
 })
    
-app.listen(3008, () => {
-    console.log('App is started at http://localhost:3008')
+app.listen(3005, () => {
+    console.log('App is started at http://localhost:3005')
 })
