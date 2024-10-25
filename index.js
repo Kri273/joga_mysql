@@ -16,80 +16,36 @@ app.engine('hbs', hbs.engine({
 // stup static public directory
 app.use(express.static('public'));
 
-const mysql = require('mysql2')
-
 const bodyParser = require('body-parser');
-const { error } = require('console');
 app.use(bodyParser.urlencoded({extended: true}))
 
-// create database connection
-var con = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: 'qwerty',
-    database: 'joga_mysql',
-})
 
-con.connect((err) => {
-    if (err) throw err;
-    console.log('connected to joga_mysql db')
-})
-//show all articles - index page
-app.get('/', (req, res) => {
-    let query = "SELECT * FROM article";
-    let articles =[]
-    con.query(query, (err, result) => {
-        if (err) throw err;
-        articles = result
-        res.render('index',{
-            articles: articles
-        })
-    })
-    
-});
+const con = require('./utils/db'); // Import the database connection
+const articleRoutes = require('./routes/article'); // import article route
+const { resourceLimits } = require('worker_threads');
 
-// show article by this slug
-app.get('/article/:slug', (req, res) => {
-    let query = `SELECT * FROM article WHERE slug="${req.params.slug}"`
-    let article
-    con.query(query, (err, result) => {
-        if (err) throw err;
-        article = result[0]
-        if (article.author_id) {
-            let authorQuery = `SELECT name FROM author WHERE id=${article.author_id}`;
-             con.query(authorQuery, (err, authorResult) => {
-                if (err) throw err;
-                    let authorName = authorResult.length > 0 ? 
-                    authorResult[0].name : 'Unknown Author';
-                    article.authorName = authorResult[0].name;
-                    res.render('article', {
-                        article: article,
-                        author_name: authorName
-            })
-        })
-    }
-    })
-});
+// to use article routes
+app.use('/', articleRoutes);
+app.use('/article', articleRoutes);
 
-//show all author articles
+// Show all author articles
 app.get('/author/:author_id', (req, res) => {
     const authorId = req.params.author_id;
     const authorQuery = `SELECT * FROM author WHERE id=${authorId}`;
-    const articlesQuery = `SELECT * FROM article WHERE author_id=${authorId}`;
-
+    
     con.query(authorQuery, (err, authorResult) => {
         if (err) throw err;
-        
+
         const author = authorResult[0];
+        const articlesQuery = `SELECT * FROM article WHERE author_id=${authorId}`;
         con.query(articlesQuery, (err, articlesResult) => {
             if (err) throw err;
-            
+
             res.render('author', {
                 author: author,
                 articles: articlesResult
             });
-        })
-    
+        });
     });
 });
  
