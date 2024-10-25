@@ -62,7 +62,6 @@ app.get('/article/:slug', (req, res) => {
                     let authorName = authorResult.length > 0 ? 
                     authorResult[0].name : 'Unknown Author';
                     article.authorName = authorResult[0].name;
-                    console.log("Author name found:", authorName);
                     res.render('article', {
                         article: article,
                         author_name: authorName
@@ -71,7 +70,29 @@ app.get('/article/:slug', (req, res) => {
     }
     })
 });
-   
+
+//show all author articles
+app.get('/author/:author_id', (req, res) => {
+    const authorId = req.params.author_id;
+    const authorQuery = `SELECT * FROM author WHERE id=${authorId}`;
+    const articlesQuery = `SELECT * FROM article WHERE author_id=${authorId}`;
+
+    con.query(authorQuery, (err, authorResult) => {
+        if (err) throw err;
+        
+        const author = authorResult[0];
+        con.query(articlesQuery, (err, articlesResult) => {
+            if (err) throw err;
+            
+            res.render('author', {
+                author: author,
+                articles: articlesResult
+            });
+        })
+    
+    });
+});
+ 
 app.listen(3005, () => {
     console.log('App is started at http://localhost:3005')
 })
