@@ -14,28 +14,6 @@ const getAllArticles = (req, res) => {
     })
 };
 
-/*// show article by this slug
-const getArticleBySlug = (req, res) => {
-    let query = `SELECT * FROM article WHERE slug="${req.params.slug}"`
-    let article
-    con.query(query, (err, result) => {
-        if (err) throw err;
-        article = result[0]
-        if (article.author_id) {
-            let authorQuery = `SELECT name FROM author WHERE id=${article.author_id}`;
-             con.query(authorQuery, (err, authorResult) => {
-                if (err) throw err;
-                const authorName = authorResult.length > 0 ? authorResult[0].name : 'Unknown Author';
-                article.authorName = authorName;
-                    res.render('article', {
-                        article: article,
-        
-            })
-        })
-    }
-    })
-};*/
-
 
 // Show article by this slug
 const getArticleBySlug = (req, res) => {
@@ -76,8 +54,29 @@ const getArticleBySlug = (req, res) => {
     });
 };
 
+const getAuthorById = (req, res) => {
+    const authorId = req.params.author_id;
+    const authorQuery = `SELECT * FROM author WHERE id=${authorId}`;
+    
+    con.query(authorQuery, (err, authorResult) => {
+        if (err) throw err;
+
+        const author = authorResult[0];
+        const articlesQuery = `SELECT * FROM article WHERE author_id=${authorId}`;
+        con.query(articlesQuery, (err, articlesResult) => {
+            if (err) throw err;
+
+            res.render('author', {
+                author: author,
+                articles: articlesResult
+            });
+        });
+    });
+};
+
     // export controller functions
     module.exports = {
         getAllArticles,
-        getArticleBySlug
+        getArticleBySlug,
+        getAuthorById
     };
